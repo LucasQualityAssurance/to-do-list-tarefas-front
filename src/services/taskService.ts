@@ -9,3 +9,13 @@ export const registerTask = async (task: TaskDto) => {
   });
   return response.data;
 };
+
+export const getAllTasks = async () => {
+  const response = await axios.get(`${API_URL}/buscarTodos`);
+  return response.data;
+};
+
+export const getTaskById = async (id: string) => {
+  const response = await axios.get(`${API_URL}/buscarPorTarefa/${id}`);
+  return response.data;
+};

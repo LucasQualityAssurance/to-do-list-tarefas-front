@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import type { TaskDto, TaskStatus } from "../../interfaces/TaskDto";
 import { registerTask } from "../../services/taskService";
 
@@ -11,6 +12,7 @@ const TaskForm: React.FC = () => {
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -46,79 +48,142 @@ const TaskForm: React.FC = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="bg-white shadow-md rounded-lg p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-4 text-center">Criar Tarefa</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-5">
-            <label htmlFor="title" className="block text-gray-700">
-              Título <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              id="title"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring focus:ring-green-500"
-              placeholder="Digite o título"
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-2xl mx-auto">
+        <button
+          onClick={() => navigate("/")}
+          className="mb-6 text-indigo-600 hover:text-indigo-800 flex items-center gap-2 transition-colors font-medium"
+        >
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
             />
+          </svg>
+          Voltar para Lista
+        </button>
+
+        <div className="bg-white shadow-xl rounded-lg overflow-hidden">
+          <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6">
+            <h2 className="text-3xl font-bold text-white">Criar Nova Tarefa</h2>
           </div>
 
-          <div className="mb-5">
-            <label htmlFor="description" className="block text-gray-700">
-              Descrição <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring focus:ring-green-500"
-              placeholder="Digite a descrição"
-              rows={4}
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="p-8">
+            <div className="mb-6">
+              <label
+                htmlFor="title"
+                className="block text-sm font-semibold text-gray-700 mb-2"
+              >
+                Título <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="title"
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                placeholder="Digite o título da tarefa"
+              />
+            </div>
 
-          <div className="mb-6">
-            <label htmlFor="status" className="block text-gray-700">
-              Status <span className="text-red-500">*</span>
-            </label>
-            <select
-              id="status"
-              name="status"
-              value={formData.status}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring focus:ring-green-500"
+            <div className="mb-6">
+              <label
+                htmlFor="description"
+                className="block text-sm font-semibold text-gray-700 mb-2"
+              >
+                Descrição <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"
+                placeholder="Digite a descrição da tarefa"
+                rows={5}
+              />
+            </div>
+
+            <div className="mb-8">
+              <label
+                htmlFor="status"
+                className="block text-sm font-semibold text-gray-700 mb-2"
+              >
+                Status <span className="text-red-500">*</span>
+              </label>
+              <select
+                id="status"
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              >
+                <option value="">Selecione o status...</option>
+                <option value="PENDENTE">Pendente</option>
+                <option value="EM_ANDAMENTO">Em Andamento</option>
+                <option value="CONCLUIDO">Concluído</option>
+              </select>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
             >
-              <option value="">Selecione...</option>
-              <option value="PENDENTE">Pendente</option>
-              <option value="CONCLUIDO">Concluído</option>
-              <option value="EM_ANDAMENTO">Em andamento</option>
-            </select>
-          </div>
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg
+                    className="animate-spin h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Salvando...
+                </span>
+              ) : (
+                "Salvar Tarefa"
+              )}
+            </button>
+          </form>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700 cursor-pointer disabled:opacity-50"
-          >
-            {loading ? "Salvando..." : "Salvar"}
-          </button>
-        </form>
-
-        {message && (
-          <div
-            className={`mt-4 text-center font-semibold ${
-              message.startsWith("✅") ? "text-green-600" : "text-red-500"
-            }`}
-          >
-            {message}
-          </div>
-        )}
+          {message && (
+            <div className="px-8 pb-8">
+              <div
+                className={`p-4 rounded-lg text-center font-semibold ${
+                  message.startsWith("✅")
+                    ? "bg-green-50 text-green-700 border border-green-200"
+                    : "bg-red-50 text-red-700 border border-red-200"
+                }`}
+              >
+                {message}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
