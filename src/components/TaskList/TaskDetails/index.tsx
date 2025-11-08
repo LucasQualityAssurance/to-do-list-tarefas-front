@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import type { TaskResponse as Task } from "../../../interfaces/TaskResponse";
-import { getTaskById } from "../../../services/taskService";
+import { getTaskById, deleteTaskById } from "../../../services/taskService";
 
 const TaskDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -9,6 +9,8 @@ const TaskDetails = () => {
   const [task, setTask] = useState<Task | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     fetchTaskDetails();
@@ -31,6 +33,20 @@ const TaskDetails = () => {
       console.error("Erro ao buscar tarefa:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!id) return;
+
+    try {
+      setDeleting(true);
+      await deleteTaskById(id);
+      navigate("/");
+    } catch (err) {
+      setError("Erro ao deletar a tarefa.");
+      console.error("Erro ao deletar tarefa:", err);
+      setDeleting(false);
     }
   };
 
@@ -269,9 +285,83 @@ const TaskDetails = () => {
                 {task.id}
               </p>
             </div>
+
+            <div className="mt-8 pt-6 border-t flex justify-end gap-3">
+              <button
+                onClick={() => navigate("/")}
+                className="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                disabled={deleting}
+                className="px-6 py-2 rounded-lg bg-red-500 text-white font-medium hover:bg-red-600 transition-colors disabled:bg-red-400 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+                {deleting ? "Deletando..." : "Deletar"}
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-2xl max-w-sm w-full p-6">
+            <div className="flex items-center justify-center mb-4">
+              <svg
+                className="w-12 h-12 text-red-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-center mb-2">
+              Deletar Tarefa?
+            </h2>
+            <p className="text-gray-600 text-center mb-6">
+              Tem certeza que deseja deletar <strong>{task.title}</strong>? Esta
+              ação não pode ser desfeita.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+                className="flex-1 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="flex-1 px-4 py-2 rounded-lg bg-red-500 text-white font-medium hover:bg-red-600 transition-colors disabled:bg-red-400 disabled:cursor-not-allowed"
+              >
+                {deleting ? "Deletando..." : "Deletar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
