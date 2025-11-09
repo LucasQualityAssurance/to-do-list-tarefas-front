@@ -1,9 +1,17 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import type { TaskDto, TaskStatus } from "../../interfaces/TaskDto";
-import { registerTask } from "../../services/taskService";
+import {
+  registerTask,
+  updateTask,
+  getTaskById,
+} from "../../services/taskService";
 
 const TaskForm: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const isEditing = !!id;
+
   const [formData, setFormData] = useState<TaskDto>({
     title: "",
     description: "",
@@ -11,8 +19,37 @@ const TaskForm: React.FC = () => {
   });
 
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(isEditing);
   const [message, setMessage] = useState<string | null>(null);
-  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isEditing) {
+      fetchTaskData();
+    }
+  }, [id]);
+
+  const fetchTaskData = async () => {
+    if (!id) {
+      setMessage("❌ ID da tarefa não encontrado.");
+      setFetching(false);
+      return;
+    }
+
+    try {
+      setFetching(true);
+      const task = await getTaskById(id);
+      setFormData({
+        title: task.title,
+        description: task.description,
+        status: task.status,
+      });
+    } catch (error: any) {
+      setMessage("❌ Erro ao carregar a tarefa.");
+      console.error("Erro ao buscar tarefa:", error);
+    } finally {
+      setFetching(false);
+    }
+  };
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -29,29 +66,46 @@ const TaskForm: React.FC = () => {
     setMessage(null);
 
     try {
-      const response = await registerTask(formData);
-      setMessage("✅ Tarefa registrada com sucesso!");
-      console.log("Resposta do backend:", response);
-
-      setFormData({ title: "", description: "", status: "PENDENTE" });
-
-      setTimeout(() => setMessage(null), 5000);
+      if (isEditing && id) {
+        await updateTask(id, formData);
+        setMessage("✅ Tarefa atualizada com sucesso!");
+        setTimeout(() => {
+          navigate(`/tarefa/${id}`);
+        }, 1500);
+      } else {
+        const response = await registerTask(formData);
+        setMessage("✅ Tarefa registrada com sucesso!");
+        console.log("Resposta do backend:", response);
+        setFormData({ title: "", description: "", status: "PENDENTE" });
+        setTimeout(() => setMessage(null), 5000);
+      }
     } catch (error: any) {
-      setMessage(
-        error.response?.data || "❌ Ocorreu um erro ao registrar a tarefa."
-      );
-
+      const errorMsg = isEditing
+        ? "❌ Ocorreu um erro ao atualizar a tarefa."
+        : "❌ Ocorreu um erro ao registrar a tarefa.";
+      setMessage(error.response?.data || errorMsg);
       setTimeout(() => setMessage(null), 5000);
     } finally {
       setLoading(false);
     }
   };
 
+  if (fetching) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600 font-medium">Carregando tarefa...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate(isEditing ? `/tarefa/${id}` : "/")}
           className="mb-6 text-indigo-600 hover:text-indigo-800 flex items-center gap-2 transition-colors font-medium"
         >
           <svg
@@ -67,12 +121,14 @@ const TaskForm: React.FC = () => {
               d="M10 19l-7-7m0 0l7-7m-7 7h18"
             />
           </svg>
-          Voltar para Lista
+          {isEditing ? "Voltar para Detalhes" : "Voltar para Lista"}
         </button>
 
         <div className="bg-white shadow-xl rounded-lg overflow-hidden">
           <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6">
-            <h2 className="text-3xl font-bold text-white">Criar Nova Tarefa</h2>
+            <h2 className="text-3xl font-bold text-white">
+              {isEditing ? "Editar Tarefa" : "Criar Nova Tarefa"}
+            </h2>
           </div>
 
           <form onSubmit={handleSubmit} className="p-8">
@@ -162,8 +218,10 @@ const TaskForm: React.FC = () => {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  Salvando...
+                  {isEditing ? "Atualizando..." : "Salvando..."}
                 </span>
+              ) : isEditing ? (
+                "Atualizar Tarefa"
               ) : (
                 "Salvar Tarefa"
               )}

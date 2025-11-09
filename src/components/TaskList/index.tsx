@@ -109,7 +109,7 @@ const TaskList = () => {
             {tasks.map((task) => (
               <div
                 key={task.id}
-                onClick={() => navigate(`/detalhes/${task.id}`)}
+                onClick={() => navigate(`/tarefa/${task.id}`)}
                 className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 p-6 border-l-4 border-indigo-500 cursor-pointer"
               >
                 <h2 className="text-xl font-semibold text-gray-800 hover:text-indigo-600 transition-colors">

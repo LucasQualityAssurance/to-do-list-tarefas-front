@@ -20,6 +20,16 @@ export const getTaskById = async (id: string) => {
   return response.data;
 };
 
+export const updateTask = async (id: string, task: TaskDto) => {
+  const response = await axios.put(`${API_URL}/atualizar`, {
+    id,
+    title: task.title,
+    description: task.description,
+    status: task.status,
+  });
+  return response.data;
+};
+
 export const deleteTaskById = async (id: string) => {
   const response = await axios.delete(`${API_URL}/deletar/${id}`);
   return response.data;
